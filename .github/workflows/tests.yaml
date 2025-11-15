@@ -1,0 +1,23 @@
+---
+name: tests
+on: [push, pull_request]
+jobs:
+  all:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup go
+      uses: actions/setup-go@v6
+      with:
+        go-version: 1.25
+    - name: Checkout repo
+      uses: actions/checkout@v5
+    - name: Install just
+      uses: extractions/setup-just@v3
+    - name: Get dependencies
+      run: just mod
+    - name: Build source
+      run: just build
+    - name: Test source
+      run: just test -v -count=1 -coverprofile /tmp/cover.out -shuffle=on
+    - name: Vet source
+      run: just vet
