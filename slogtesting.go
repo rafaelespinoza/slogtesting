@@ -12,6 +12,38 @@ import (
 
 const logPrefix = "slogtesting: "
 
+// CaptureRecords uses the input opts to create a new handler via [NewAttrHandler],
+// runs your test and collects the records processed by the handler.
+//
+// If opts is non-empty then its [slog.HandlerOptions] may be used to configure
+// the handler, and if its CaptureRecord field is non-empty then it would be
+// called after building up the output records. The run function is passed the
+// handler, which should be used to create a logger via [slog.New], and then
+// execute the code to test. This function may also return an error from the
+// input run function. The output records are what was written to the log. See
+// the package doc for an example.
+func CaptureRecords(opts *AttrHandlerOptions, run func(h slog.Handler) error) (out []slog.Record, err error) {
+	if opts == nil {
+		opts = &AttrHandlerOptions{}
+	}
+
+	captureRecord := func(r slog.Record) (captErr error) {
+		out = append(out, r)
+		if opts.CaptureRecord != nil {
+			captErr = opts.CaptureRecord(r)
+		}
+		return
+	}
+
+	handler := NewAttrHandler(&AttrHandlerOptions{
+		HandlerOptions: opts.HandlerOptions,
+		CaptureRecord:  captureRecord,
+	})
+
+	err = run(handler)
+	return
+}
+
 // GetRecordAttrs collects each attribute on the record.
 func GetRecordAttrs(r slog.Record) []slog.Attr {
 	out := make([]slog.Attr, 0, r.NumAttrs())

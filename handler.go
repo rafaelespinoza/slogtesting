@@ -30,6 +30,10 @@ type AttrHandlerOptions struct {
 // [GetRecordAttrs] to access the attributes of the processed record. Unless the
 // handler was created with a CaptureRecord function, the Handle method is a
 // no-op.
+//
+// If all you need is to run a test involving some logging action and to inspect
+// the logging ouput, then [CaptureRecords] might suit that need more directly.
+// For other use cases, this handler is available.
 func NewAttrHandler(opts *AttrHandlerOptions) slog.Handler {
 	if opts == nil {
 		opts = &AttrHandlerOptions{}
