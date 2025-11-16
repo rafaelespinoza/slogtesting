@@ -21,3 +21,8 @@ jobs:
       run: just test -v -count=1 -coverprofile /tmp/cover.out -shuffle=on
     - name: Vet source
       run: just vet
+    - name: Upload code coverage
+      uses: codecov/codecov-action@v5
+      with:
+        files: /tmp/cover.out
+        token: ${{ secrets.CODECOV_TOKEN }}

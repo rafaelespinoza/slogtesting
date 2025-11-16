@@ -3,6 +3,7 @@ slogtesting
 
 [![](https://pkg.go.dev/badge/github.com/rafaelespinoza/slogtesting)](https://pkg.go.dev/github.com/rafaelespinoza/slogtesting)
 [![tests](https://github.com/rafaelespinoza/slogtesting/actions/workflows/tests.yaml/badge.svg)](https://github.com/rafaelespinoza/slogtesting/actions/workflows/tests.yaml)
+[![codecov](https://codecov.io/gh/rafaelespinoza/slogtesting/graph/badge.svg?token=ZL2BP29ZVX)](https://codecov.io/gh/rafaelespinoza/slogtesting)
 
 `slogtesting` is a golang library to test that your application's structured
 logging outputs the intended data.
