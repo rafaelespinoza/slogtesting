@@ -58,6 +58,16 @@ func HasAttr(want slog.Attr) Check {
 	}
 }
 
+// HasMatch makes a Check that allows stricter or looser attribute targeting
+// logic than what's provided by the other check functions.
+// The Check will return an error unless a matching attribute is found in attrs.
+func HasMatch(m func(slog.Attr) bool) Check {
+	return func(attrs []slog.Attr) (err error) {
+		_, err = collectNMatchingAttrs(attrs, 1, m)
+		return
+	}
+}
+
 // InGroup makes a Check for a Check in a group with a matching name. The
 // output Check will run all of the input Checks and combine non-nil errors into
 // 1 using errors.Join.

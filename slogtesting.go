@@ -73,6 +73,7 @@ func collectNMatchingAttrs(attrs []slog.Attr, n int, match matcher) (out []slog.
 	return
 }
 
+// A matcher is attribute targeting logic for use in a [Check].
 type matcher func(slog.Attr) bool
 
 func makeKeyMatcher(key string) matcher { return func(a slog.Attr) bool { return a.Key == key } }

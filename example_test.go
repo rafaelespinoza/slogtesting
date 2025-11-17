@@ -3,6 +3,7 @@ package slogtesting_test
 import (
 	"fmt"
 	"log/slog"
+	"regexp"
 
 	st "github.com/rafaelespinoza/slogtesting"
 )
@@ -96,4 +97,72 @@ func Example() {
 	// found group G and attribute with key c
 	// found group G, another group H and attribute with key c
 	// did not find attribute with key z
+}
+
+func ExampleHasMatch() {
+	userIDPattern := regexp.MustCompile(`(?i)\buser.?id$`)
+
+	matchUserIDHeader := func(a slog.Attr) bool {
+		// Target attributes with keys resembling user ID.
+		// * + examples: "X-UserID", "User-Id", "user_id" ...
+		// * - examples: "User-Identifier", "uid" ...
+		if !userIDPattern.MatchString(a.Key) {
+			return false
+		}
+
+		// Also check for a a usable value.
+		switch k := a.Value.Kind(); k {
+		case slog.KindAny:
+			switch val := a.Value.Any().(type) {
+			case []string:
+				return len(val) > 0
+			default:
+				return false
+			}
+		case slog.KindString:
+			return a.Value.String() != ""
+		default:
+			return false
+		}
+	}
+
+	tests := []struct {
+		attr  slog.Attr
+		okMsg string
+	}{
+		{
+			attr:  slog.Any("User-Id", []string{"111"}),
+			okMsg: "found User-Id []string",
+		},
+		{
+			attr:  slog.Any("X-User-Id", []string{"111"}),
+			okMsg: "found X-User-Id []string",
+		},
+		{
+			attr:  slog.String("userID", "111"),
+			okMsg: "found userID string",
+		},
+		{
+			attr:  slog.String("user_id", "111"),
+			okMsg: "found user_id string",
+		},
+	}
+
+	for _, test := range tests {
+		check := st.HasMatch(matchUserIDHeader)
+		attrs := []slog.Attr{test.attr}
+
+		err := check(attrs)
+
+		if err != nil {
+			fmt.Println("unexpected error", err.Error())
+		} else {
+			fmt.Println(test.okMsg)
+		}
+	}
+	// Output:
+	// found User-Id []string
+	// found X-User-Id []string
+	// found userID string
+	// found user_id string
 }
