@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 )
 
 // A Check is a general-purpose test on slog attributes. It's based off the
@@ -61,27 +62,27 @@ func HasAttr(want slog.Attr) Check {
 // output Check will run all of the input Checks and combine non-nil errors into
 // 1 using errors.Join.
 func InGroup(name string, c Check, moreChecks ...Check) Check {
-	return func(attrs []slog.Attr) (err error) {
+	return func(attrs []slog.Attr) error {
 		matchKey := makeKeyMatcher(name)
 		got, err := collectNMatchingAttrs(attrs, 1, matchKey)
 		if err != nil {
-			err = fmt.Errorf("looking for group attr with name %s: %v", name, err)
-			return
+			return fmt.Errorf("looking for group attr with name %s: %v", name, err)
 		}
 
 		kind := got[0].Value.Kind()
 		if kind != slog.KindGroup {
-			err = fmt.Errorf("wrong kind (%s) for item with key %s, expected %s", kind, name, slog.KindGroup.String())
-			return
+			return fmt.Errorf("wrong kind (%s) for item with key %s, expected %s", kind, name, slog.KindGroup.String())
 		}
 
 		errs := make([]error, 0, 1+len(moreChecks))
 		groupVals := got[0].Value.Group()
-		if err = c(groupVals); err != nil {
+		if err := c(groupVals); err != nil {
+			err = makeErrorWithGroupPath(err, name)
 			errs = append(errs, err)
 		}
 		for _, check := range moreChecks {
-			if err = check(groupVals); err != nil {
+			if err := check(groupVals); err != nil {
+				err = makeErrorWithGroupPath(err, name)
 				errs = append(errs, err)
 			}
 		}
@@ -89,3 +90,32 @@ func InGroup(name string, c Check, moreChecks ...Check) Check {
 		return errors.Join(errs...)
 	}
 }
+
+func makeErrorWithGroupPath(err error, groupName string) error {
+	var errWithPath *errorWithGroupPath
+	if !errors.As(err, &errWithPath) {
+		err = &errorWithGroupPath{
+			err:       err,
+			groupPath: []string{groupName},
+		}
+	} else {
+		// Add the new value at the start of the slice b/c the targeted error
+		// occurred "deeper" within the attribute groups, and we want for the
+		// presentation of group names to be from the outermost to innermost
+		// group names.
+		errWithPath.groupPath = append([]string{groupName}, errWithPath.groupPath...)
+		err = errWithPath
+	}
+	return err
+}
+
+type errorWithGroupPath struct {
+	err       error
+	groupPath []string
+}
+
+func (e *errorWithGroupPath) Error() string {
+	return fmt.Sprintf("%v; group path %s", e.err, strings.Join(e.groupPath, "."))
+}
+
+func (e *errorWithGroupPath) GroupPath() []string { return e.groupPath }
