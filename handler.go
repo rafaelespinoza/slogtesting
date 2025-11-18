@@ -106,6 +106,13 @@ func (h *attrHandler) buildRecordAttrs(r slog.Record) slog.Record {
 		ab.buildAttr(nil, slog.Time(slog.TimeKey, r.Time))
 	}
 	ab.buildAttr(nil, slog.String(slog.LevelKey, r.Level.String()))
+	if h.opts.AddSource {
+		src := r.Source()
+		if src == nil {
+			src = &slog.Source{}
+		}
+		ab.buildAttr(nil, slog.Any(slog.SourceKey, src))
+	}
 	ab.buildAttr(nil, slog.String(slog.MessageKey, r.Message))
 
 	// Work on the non builtin attributes.

@@ -63,6 +63,27 @@ func TestAttrHandler(t *testing.T) {
 		expect func(*testing.T, []slog.Record)
 	}{
 		{
+			name: "options.AddSource",
+			opts: &st.AttrHandlerOptions{
+				HandlerOptions: slog.HandlerOptions{AddSource: true},
+			},
+			action: func(t *testing.T, h slog.Handler) {
+				rec := slog.NewRecord(time.Now(), slog.LevelInfo, "msg", 1)
+				err := h.Handle(context.Background(), rec)
+				if err != nil {
+					t.Error(err)
+				}
+			},
+			expect: func(t *testing.T, got []slog.Record) {
+				requireResultLen(t, got, 1)
+				attrs := st.GetRecordAttrs(got[0])
+				check := st.HasKey(slog.SourceKey)
+				if err := check(attrs); err != nil {
+					t.Error(err)
+				}
+			},
+		},
+		{
 			name: "options.ReplaceAttr time key",
 			opts: &st.AttrHandlerOptions{
 				HandlerOptions: slog.HandlerOptions{
@@ -91,7 +112,7 @@ func TestAttrHandler(t *testing.T) {
 			},
 		},
 		{
-			name: "options.Level level key",
+			name: "options.ReplaceAttr level key",
 			opts: &st.AttrHandlerOptions{
 				HandlerOptions: slog.HandlerOptions{
 					ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
