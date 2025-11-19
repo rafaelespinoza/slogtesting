@@ -9,12 +9,13 @@ slogtesting
 logging outputs the intended data.
 It requires the use of [log/slog](https://pkg.go.dev/log/slog).
 
+![the golang gopher wearing a labcoat, inspecting a log](./.assets/gopher.png)
+
 ## Features
 
 * In-Memory Capture: Provides a `slog.Handler` that captures `slog.Record`
-  golang values. Contrast with a regular `slog.Handler` that writes in a
-  specific format and may require you to parse the log data to see if something
-  is in there. Instead, work with golang data structures.
+  golang values. This eases testing because there is no need to parse the
+  formatted data. Instead, work directly with golang data structures.
 * Simple: Integrates with the standard library's `*slog.Logger`.
 * High-Level Checks: Includes helpers like `HasAttr` to simplify checking
   for specific key-value pairs in the captured logs. Use the `InGroup` check to
@@ -40,7 +41,7 @@ case, but AFAIK you can't run them automatically, as actual tests, without the
 build failing. Those tests are designed to fail. For this reason, a `Check`
 returns an error, which is very easy to test.
 
-It's not too much work to adapt a `Check` to use `testing`.
+It's easy to adapt a `Check` to use `testing`.
 ```go
 package main_test
 
@@ -140,7 +141,7 @@ func TestCompleteExample(t *testing.T) {
 			check: st.InGroup("G", st.HasAttr(slog.String("c", "d"))),
 		},
 		{
-			name:  "group G, another group H and attribute with key c",
+			name:  "group G, another group H and attribute with key e",
 			check: st.InGroup("G", st.InGroup("H", st.HasAttr(slog.String("e", "f")))),
 		},
 		{

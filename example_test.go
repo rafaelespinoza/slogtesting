@@ -73,7 +73,7 @@ func Example() {
 		},
 		{
 			check: st.InGroup("G", st.InGroup("H", st.HasAttr(slog.String("e", "f")))),
-			okMsg: "found group G, another group H and attribute with key c",
+			okMsg: "found group G, another group H and attribute with key e",
 		},
 		{
 			check: st.MissingKey("z"),
@@ -95,7 +95,7 @@ func Example() {
 	// found attribute with key msg
 	// found attribute with key a
 	// found group G and attribute with key c
-	// found group G, another group H and attribute with key c
+	// found group G, another group H and attribute with key e
 	// did not find attribute with key z
 }
 
