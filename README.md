@@ -11,6 +11,34 @@ It requires the use of [log/slog](https://pkg.go.dev/log/slog).
 
 ![the golang gopher wearing a labcoat, inspecting a log](./.assets/gopher.png)
 
+This library operates on the interface level and on the outputs. It has a
+`slog.Handler` implementation made to intercept messages from the application's
+`*slog.Logger`, and outputs golang values rather than log entries in a
+particular format. When you're testing values at a higher abstraction level,
+your tests do not need to be concerned interpreting log entries in their
+format.
+
+## Why
+
+This begs the question, why test logs in the first place?
+
+* To check that sensitive information, such as PII or credentials, is redacted
+  or not logged at all. Example: the application is handling this kind of data,
+  and you need tests for this behavior.
+* To check that a log is emitted with sufficient contextual data to be useful;
+  IDs, paths, etc. Example: the logs are sent to some monitoring tool that
+  alerts when it sees messages in some pattern and you want a unit test close
+  to the application.
+* To check that logs have an appropriate logging level. Example: oh, this
+  critical error occurred, so we're going to need something more obvious than a
+  typical INFO log here.
+
+Logs can be difficult to test. They're often overlooked in tests because
+they're a side effect of something else more important, the thing that's worth
+logging in the first place. Yet, logs are an essential component of
+observability for any modern application. This library aims to make testing
+logs easier.
+
 ## Features
 
 * In-Memory Capture: Provides a `slog.Handler` that captures `slog.Record`
