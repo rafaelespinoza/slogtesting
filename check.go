@@ -10,10 +10,12 @@ import (
 
 // A Check is a general-purpose test on slog attributes. It's based off the
 // implementation of the [testing/slogtest] package.
-type Check func([]slog.Attr) error
+type Check func(attrs []slog.Attr) error
 
 // HasKey makes a Check for the presence of an attribute with a key.
 // The Check will return an error unless a matching attribute is found in attrs.
+// Use this when you want to target an attribute with that key but do not care
+// about the value.
 func HasKey(key string) Check {
 	return func(attrs []slog.Attr) (err error) {
 		matchKey := makeKeyMatcher(key)
@@ -26,7 +28,7 @@ func HasKey(key string) Check {
 }
 
 // MissingKey makes a Check for the absence of an attribute with a key.
-// The Check will return an error unless a matching attribute is found in attrs.
+// The Check will return an error if a matching attribute is found in attrs.
 func MissingKey(key string) Check {
 	return func(attrs []slog.Attr) (err error) {
 		matchKey := makeKeyMatcher(key)
@@ -41,6 +43,8 @@ func MissingKey(key string) Check {
 // HasAttr makes a Check for the presence of an attribute with the wanted
 // key and value.
 // The Check will return an error unless a matching attribute is found in attrs.
+// Use this when you want to see exactly 1 attribute with an equal key and value
+// in attrs.
 func HasAttr(want slog.Attr) Check {
 	return func(attrs []slog.Attr) (err error) {
 		matchKey := makeKeyMatcher(want.Key)
