@@ -71,20 +71,30 @@ func HasMatch(m func(slog.Attr) bool) Check {
 	}
 }
 
-// InGroup makes a Check for a Check in a group with a matching name. The
-// output Check will run all of the input Checks and combine non-nil errors into
-// 1 using errors.Join.
+// InGroup makes a Check for a Check in a group with a matching name. The output
+// Check will first look for group with a given name, then run all of the input
+// Checks upon the attributes in the group, and then combine non-nil errors into
+// 1 using [errors.Join].
 func InGroup(name string, c Check, moreChecks ...Check) Check {
 	return func(attrs []slog.Attr) error {
 		matchKey := makeKeyMatcher(name)
 		got, err := collectNMatchingAttrs(attrs, 1, matchKey)
 		if err != nil {
-			return fmt.Errorf("looking for group attr with name %s: %v", name, err)
+			// Though there is only 1 error here, keep the interface consistent
+			// with cases where multiple errors are combined using errors.Join.
+			// The wanted effect is that the output error implements the method
+			// `Unwrap() []error`.
+			err = fmt.Errorf("looking for group attr with name %s: %v", name, err)
+			return errors.Join(err)
 		}
 
 		kind := got[0].Value.Kind()
 		if kind != slog.KindGroup {
-			return fmt.Errorf("wrong kind (%s) for item with key %s, expected %s", kind, name, slog.KindGroup.String())
+			// Same idea as noted above. There's only 1 error here, but keep the
+			// interface consistent. Ensure that the output error implements the
+			// method `Unwrap() []error`.
+			err = fmt.Errorf("wrong kind (%s) for item with key %s, expected %s", kind, name, slog.KindGroup.String())
+			return errors.Join(err)
 		}
 
 		errs := make([]error, 0, 1+len(moreChecks))

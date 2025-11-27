@@ -246,13 +246,17 @@ func TestCheckGroupsFailures(t *testing.T) {
 			}
 			t.Log(err)
 
-			if len(test.expGroupPaths) < 1 {
-				return
-			}
-
 			unwrappableErr, ok := err.(unwrappableErrors)
 			if !ok {
+				// The documentation for this function is that the output error
+				// would be treated with errors.Join. An effect of using
+				// errors.Join is that output error also implements this
+				// interface:  `Unwrap() []error`
 				t.Fatal("expected error to implement expected interface with Unwrap method")
+			}
+
+			if len(test.expGroupPaths) < 1 {
+				return
 			}
 
 			unwrappedErrs := unwrappableErr.Unwrap()
