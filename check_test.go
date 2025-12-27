@@ -174,7 +174,7 @@ func TestCheckGroupsFailures(t *testing.T) {
 		{
 			name: "nested group attr not found",
 			attrs: []slog.Attr{
-				slog.GroupAttrs("G",
+				slogGroupAttrs("G",
 					slog.String("c", "d"),
 				),
 			},
@@ -184,7 +184,7 @@ func TestCheckGroupsFailures(t *testing.T) {
 		{
 			name: "attr found but is not a group",
 			attrs: []slog.Attr{
-				slog.GroupAttrs("G",
+				slogGroupAttrs("G",
 					slog.String("c", "d"),
 				),
 			},
@@ -194,7 +194,7 @@ func TestCheckGroupsFailures(t *testing.T) {
 		{
 			name: "1 level deep",
 			attrs: []slog.Attr{
-				slog.GroupAttrs("G",
+				slogGroupAttrs("G",
 					slog.String("c", "d"),
 				),
 			},
@@ -204,8 +204,8 @@ func TestCheckGroupsFailures(t *testing.T) {
 		{
 			name: "2 levels deep",
 			attrs: []slog.Attr{
-				slog.GroupAttrs("G",
-					slog.GroupAttrs("H",
+				slogGroupAttrs("G",
+					slogGroupAttrs("H",
 						slog.String("e", "f"),
 					),
 				),
@@ -216,8 +216,8 @@ func TestCheckGroupsFailures(t *testing.T) {
 		{
 			name: "multiple errors different groups",
 			attrs: []slog.Attr{
-				slog.GroupAttrs("G",
-					slog.GroupAttrs("H",
+				slogGroupAttrs("G",
+					slogGroupAttrs("H",
 						slog.String("e", "f"),
 					),
 					slog.String("a", "b"),

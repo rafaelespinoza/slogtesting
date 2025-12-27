@@ -18,7 +18,7 @@ func TestFindAttr(t *testing.T) {
 	}
 
 	nodeG := attrWithPath{
-		Attr: pointTo(slog.GroupAttrs("G", *terminalNode.Attr, *nodeH.Attr)),
+		Attr: pointTo(slogGroupAttrs("G", *terminalNode.Attr, *nodeH.Attr)),
 		children: map[string]*attrWithPath{
 			"child": &terminalNode,
 			"H":     &nodeH,

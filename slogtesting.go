@@ -77,3 +77,8 @@ func collectNMatchingAttrs(attrs []slog.Attr, n int, match matcher) (out []slog.
 type matcher func(slog.Attr) bool
 
 func makeKeyMatcher(key string) matcher { return func(a slog.Attr) bool { return a.Key == key } }
+
+// slogGroupAttrs is a [slog.GroupAttrs] polyfill/shim for golang versions < v1.25.
+func slogGroupAttrs(key string, attrs ...slog.Attr) slog.Attr {
+	return slog.Attr{Key: key, Value: slog.GroupValue(attrs...)}
+}

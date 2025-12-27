@@ -56,7 +56,7 @@ func (ab *attrBuilder) buildAttr(groups []string, attr slog.Attr) {
 			return
 		}
 
-		attr = slog.GroupAttrs(attr.Key, groupAttrs...)
+		attr = slogGroupAttrs(attr.Key, groupAttrs...)
 		ab.results = append(ab.results, attr)
 		ab.attrsByPath[attr.Key] = newAttrWithPath(&attr)
 		return
@@ -106,8 +106,8 @@ func (ab *attrBuilder) buildAttr(groups []string, attr slog.Attr) {
 		mount.children[attr.Key] = newAttrWithPath(&attr)
 	} else {
 		slog.Debug(logPrefix+"from (*ab).buildAttr, would mount a non-group attr onto a non-group attr",
-			slog.GroupAttrs("mount", slog.String("key", mount.Key), slog.String("val_kind", mount.Value.Kind().String())),
-			slog.GroupAttrs("attr", slog.String("key", attr.Key), slog.String("val_kind", attr.Value.Kind().String())),
+			slogGroupAttrs("mount", slog.String("key", mount.Key), slog.String("val_kind", mount.Value.Kind().String())),
+			slogGroupAttrs("attr", slog.String("key", attr.Key), slog.String("val_kind", attr.Value.Kind().String())),
 		)
 	}
 }
@@ -119,11 +119,11 @@ func buildGroupsAroundAttr(groups []string, attr slog.Attr) slog.Attr {
 
 	// Start at the end of groups and build the output backwards. This results
 	// in the first group being the primary group for attr.
-	out := slog.GroupAttrs(groups[len(groups)-1], attr)
+	out := slogGroupAttrs(groups[len(groups)-1], attr)
 
 	for i := len(groups) - 2; i >= 0; i-- {
 		group := groups[i]
-		out = slog.GroupAttrs(group, out)
+		out = slogGroupAttrs(group, out)
 	}
 
 	return out

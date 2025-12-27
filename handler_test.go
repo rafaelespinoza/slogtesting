@@ -137,8 +137,8 @@ func TestAttrHandler(t *testing.T) {
 			opts: &st.AttrHandlerOptions{},
 			action: func(t *testing.T, h slog.Handler) {
 				rec := slog.NewRecord(time.Now(), slog.LevelInfo, "msg", 0)
-				rec.AddAttrs(slog.GroupAttrs("G",
-					slog.GroupAttrs("H", slog.Bool("deep", true)),
+				rec.AddAttrs(slogGroupAttrs("G",
+					slogGroupAttrs("H", slog.Bool("deep", true)),
 				))
 				err := h.Handle(context.Background(), rec)
 				if err != nil {
