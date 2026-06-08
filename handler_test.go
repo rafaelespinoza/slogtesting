@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"maps"
 	"os"
+	"runtime"
 	"testing"
 	"testing/slogtest"
 	"time"
@@ -63,6 +64,61 @@ func TestAttrHandler(t *testing.T) {
 		expect func(*testing.T, []slog.Record)
 	}{
 		{
+			name: "options.AddSource",
+			opts: &st.AttrHandlerOptions{
+				HandlerOptions: slog.HandlerOptions{AddSource: true},
+			},
+			action: func(t *testing.T, h slog.Handler) {
+				var pcs [1]uintptr
+				runtime.Callers(1, pcs[:])
+				rec := slog.NewRecord(time.Now(), slog.LevelInfo, "msg", pcs[0])
+				err := h.Handle(context.Background(), rec)
+				if err != nil {
+					t.Error(err)
+				}
+			},
+			expect: func(t *testing.T, got []slog.Record) {
+				requireResultLen(t, got, 1)
+				attrs := st.GetRecordAttrs(got[0])
+
+				checkKey := st.HasKey(slog.SourceKey)
+				if err := checkKey(attrs); err != nil {
+					t.Error(err)
+				}
+
+				checkMatchingValue := st.HasMatch(func(a slog.Attr) bool {
+					if a.Key != slog.SourceKey {
+						// Ignore attribute unless it's the one with the Source key.
+						return false
+					}
+
+					val := a.Value.Any()
+					switch src := val.(type) {
+					case *slog.Source:
+						if src.Function == "" {
+							t.Error("expected non-empty Source.Function")
+						}
+						if src.File == "" {
+							t.Error("expected non-empty Source.File")
+						}
+						if src.Line == 0 {
+							t.Error("expected non-empty Source.Line")
+						}
+					default:
+						t.Errorf(
+							"expected for attribute with key %s have a value of type %T, got %T",
+							a.Key, new(slog.Source), src,
+						)
+					}
+
+					return true
+				})
+				if err := checkMatchingValue(attrs); err != nil {
+					t.Error(err)
+				}
+			},
+		},
+		{
 			name: "options.ReplaceAttr time key",
 			opts: &st.AttrHandlerOptions{
 				HandlerOptions: slog.HandlerOptions{
@@ -91,7 +147,7 @@ func TestAttrHandler(t *testing.T) {
 			},
 		},
 		{
-			name: "options.Level level key",
+			name: "options.ReplaceAttr level key",
 			opts: &st.AttrHandlerOptions{
 				HandlerOptions: slog.HandlerOptions{
 					ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
